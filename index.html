@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fabric ft → yd + Price Calculator</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 440px; margin: 2rem auto; padding: 1rem; line-height: 1.4; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+    label { display: block; margin-top: 1rem; font-weight: 600; }
+    input, select, button { font-size: 1.1rem; padding: 0.55rem; margin-top: 0.3rem; width: 100%; box-sizing: border-box; }
+    button { background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 1.2rem; }
+    button:hover { background: #1d4ed8; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-top: 1.2rem; }
+    .result { font-size: 1.35rem; font-weight: 700; }
+    .sub { color: #475569; font-size: 0.95rem; margin-top: 0.4rem; }
+    .note { color: #64748b; font-size: 0.85rem; margin-top: 0.6rem; }
+  </style>
+</head>
+<body>
+  <h1>Fabric Length & Price Calculator</h1>
+  <p class="note">1 yard = 3 feet. Useful when fabric is sold by the yard but you measure in feet.</p>
+
+  <label for="feet">Length in feet</label>
+  <input type="number" id="feet" step="any" min="0" placeholder="e.g. 15" value="5">
+
+  <label for="preset">Quick length presets</label>
+  <select id="preset">
+    <option value="">— custom length —</option>
+    <option value="5" selected>5 ft (fixed piece)</option>
+    <option value="10">10 ft</option>
+    <option value="15">15 ft</option>
+    <option value="20">20 ft</option>
+    <option value="30">30 ft</option>
+  </select>
+
+  <label for="price">Price per yard ($)</label>
+  <input type="number" id="price" step="0.01" min="0" placeholder="e.g. 12.99" value="12.99">
+
+  <button onclick="calculate()">Calculate</button>
+
+  <div class="card">
+    <div class="result" id="lengthResult">—</div>
+    <div class="result" id="costResult" style="margin-top:0.6rem;">—</div>
+    <div class="sub" id="extra"></div>
+    <div class="note" id="note"></div>
+  </div>
+
+  <script>
+    const feetInput = document.getElementById('feet');
+    const preset = document.getElementById('preset');
+    const priceInput = document.getElementById('price');
+    const lengthResult = document.getElementById('lengthResult');
+    const costResult = document.getElementById('costResult');
+    const extra = document.getElementById('extra');
+    const note = document.getElementById('note');
+
+    preset.addEventListener('change', () => {
+      if (preset.value) feetInput.value = preset.value;
+      calculate();
+    });
+
+    // Recalculate live while typing
+    feetInput.addEventListener('input', calculate);
+    priceInput.addEventListener('input', calculate);
+
+    function calculate() {
+      const ft = parseFloat(feetInput.value);
+      const pricePerYard = parseFloat(priceInput.value);
+
+      if (isNaN(ft) || ft < 0) {
+        lengthResult.textContent = 'Enter a valid length in feet';
+        costResult.textContent = '';
+        extra.textContent = '';
+        note.textContent = '';
+        return;
+      }
+
+      const yards = ft / 3;
+      lengthResult.textContent = `${ft} ft = ${yards.toFixed(4)} yards`;
+
+      // Price calculation
+      if (!isNaN(pricePerYard) && pricePerYard >= 0) {
+        const totalCost = yards * pricePerYard;
+        const costPerFoot = pricePerYard / 3;
+        costResult.textContent = `Total cost: $${totalCost.toFixed(2)}`;
+        extra.textContent = `Price per foot: $${costPerFoot.toFixed(2)}`;
+      } else {
+        costResult.textContent = 'Enter price per yard to see total cost';
+        extra.textContent = '';
+      }
+
+      // Helpful fabric note
+      const whole = Math.floor(yards);
+      const frac = yards - whole;
+      let remainder = '';
+      if (frac === 0) remainder = 'Exact whole yards.';
+      else if (Math.abs(frac - 1/3) < 0.001) remainder = 'Exactly ⅓ yard remainder.';
+      else if (Math.abs(frac - 2/3) < 0.001) remainder = 'Exactly ⅔ yard remainder.';
+      else remainder = `≈ ${whole} yards + ${(frac * 36).toFixed(1)} inches`;
+
+      note.textContent = remainder + (ft === 5 ? ' (common fixed 5-ft piece)' : '');
+    }
+
+    // Run once on load
+    calculate();
+  </script>
+</body>
+</html>
